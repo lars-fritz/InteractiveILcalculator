@@ -3,8 +3,7 @@ import math
 
 st.title("Uniswap v3 Impermanent Loss Calculator")
 
-# --- SECTION 1: Placeholder for Uniswap v3 Math ---
-st.header("Uniswap v3 Math (Placeholder)")
+
 st.markdown("""
 
 # 📘 Uniswap v3 Mathematics: Liquidity, Price, and Token Amounts
@@ -130,8 +129,7 @@ and these satisfy the invariant:
 
 """)
 
-# --- SECTION 2: Placeholder for IL Discussion ---
-st.header("Impermanent Loss (Placeholder)")
+
 st.markdown(r"""
 ## 📉 Impermanent Loss From a Price Move
 
