@@ -233,10 +233,23 @@ def compute_xpos(L, p, pmax):
 
 def compute_ypos(L, p, pmin):
     return L * (math.sqrt(p) - math.sqrt(pmin))
+st.session_state['L'] = L
+st.session_state['p_min'] = p_min
+st.session_state['p_max'] = p_max
+st.session_state['p_initial'] = current_price
 
 
 # --- Computation ---
 st.subheader("2. Liquidity and Position Composition")
+
+if 'L' not in st.session_state:
+    st.warning("Please compute liquidity above before calculating IL.")
+    st.stop()
+
+L = st.session_state['L']
+p_min = st.session_state['p_min']
+p_max = st.session_state['p_max']
+p_initial = st.session_state['p_initial']
 
 if st.button("Compute Liquidity and Token Split"):
 
