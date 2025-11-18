@@ -258,3 +258,65 @@ if st.button("Compute Liquidity and Token Split"):
 
     st.markdown("---")
     st.caption("These are the actual tokens currently deposited inside the active Uniswap v3 position.")
+  st.subheader("Interactive IL Calculator")
+
+p_initial = st.number_input("Initial price p", value=1.0, step=0.01)
+p_new = st.number_input("New price p'", value=0.7, step=0.01)
+
+# Use your existing L from earlier section (saved as L)
+# Or add a manual override:
+# L = st.number_input("Liquidity L", value=1000.0)
+
+def x_amount(L, p, pmax):
+    return L * (1/math.sqrt(p) - 1/math.sqrt(pmax))
+
+def y_amount(L, p, pmin):
+    return L * (math.sqrt(p) - math.sqrt(pmin))
+
+def x_amount_future(L, p_prime, pmin, pmax):
+    p_eff = max(p_prime, pmin)   # no y below pmin
+    return L * (1/math.sqrt(p_eff) - 1/math.sqrt(pmax))
+
+def y_amount_future(L, p_prime, pmin):
+    p_eff = min(p_prime, pmax)   # no x above pmax
+    return L * (math.sqrt(p_eff) - math.sqrt(pmin))
+
+# Compute initial token amounts (x,y at p)
+x_init = x_amount(L, p_initial, p_max)
+y_init = y_amount(L, p_initial, p_min)
+
+# Compute future token amounts (x',y' at p')
+x_new = x_amount_future(L, p_new, p_min, p_max)
+y_new = y_amount_future(L, p_new, p_min)
+
+# Value of LP and HODL at new price
+V_lp = x_new + (1/p_new)*y_new
+V_hodl = x_init + (1/p_new)*y_init
+
+IL = (V_hodl - V_lp) / V_hodl
+
+st.write(f"**LP value at p' = {p_new}:** {V_lp:.6f}")
+st.write(f"**HODL value at p' = {p_new}:** {V_hodl:.6f}")
+st.write(f"### ➖ Impermanent Loss: {IL:.4%}")
+
+# Plot IL curve over a range
+import numpy as np
+import matplotlib.pyplot as plt
+
+p_vals = np.linspace(0.5 * p_initial, 1.5 * p_initial, 200)
+IL_vals = []
+
+for pprime in p_vals:
+    xp = x_amount_future(L, pprime, p_min, p_max)
+    yp = y_amount_future(L, pprime, p_min)
+    Vlp = xp + yp / pprime
+    Vhodl = x_init + y_init / pprime
+    IL_vals.append((Vhodl - Vlp) / Vhodl)
+
+fig, ax = plt.subplots()
+ax.plot(p_vals, IL_vals)
+ax.axvline(p_initial, color='gray', linestyle='--', linewidth=1)
+ax.set_title("Impermanent Loss Curve")
+ax.set_xlabel("Price p'")
+ax.set_ylabel("IL")
+st.pyplot(fig)
