@@ -6,7 +6,152 @@ st.title("Uniswap v3 Impermanent Loss Calculator")
 # --- SECTION 1: Placeholder for Uniswap v3 Math ---
 st.header("Uniswap v3 Math (Placeholder)")
 st.markdown("""
-(You will paste your explanatory text here later.)
+Below is a **fully polished, drop-in Streamlit Markdown block** containing:
+
+* ✔ The invariant
+* ✔ Token formulas
+* ✔ A clean intuitive explanation
+* ✔ A short derivation of the formulas
+* ✔ A short explanation of why Uniswap v3 uses **square-root price**
+
+All formulas are written in **pure Markdown + LaTeX**, which Streamlit renders natively with `st.markdown(..., unsafe_allow_html=True)`.
+
+You can paste this entire block directly into your app.
+
+---
+
+# 📘 Uniswap v3 Mathematics: Liquidity, Price, and Token Amounts
+
+### 🔢 **1. The Core Concentrated-Liquidity Invariant**
+
+In Uniswap v3, a position is defined by the liquidity parameter (L) and a price range ([p_{\min}, p_{\max}]).
+For any price (p) inside this range, the reserves of token (x) and token (y) in the position satisfy the fundamental invariant:
+
+[
+\left( x + \frac{L}{\sqrt{p_{\max}}} \right)
+\left( y + L\sqrt{p_{\min}} \right)
+= L^{2}.
+]
+
+This describes the *geometry* of concentrated liquidity: instead of a constant product (x y = k), Uniswap v3 uses an **affine transformation in square-root price space**, causing the liquidity curve to be shifted and clipped to the active interval.
+
+---
+
+### 🧮 **2. Token Amounts as Explicit Functions of Price**
+
+Solving the invariant for (x) and (y) gives the in-range token amounts:
+
+[
+x(p) = L\left( \frac{1}{\sqrt{p}} - \frac{1}{\sqrt{p_{\max}}} \right),
+\qquad
+y(p) = L\left( \sqrt{p} - \sqrt{p_{\min}} \right).
+]
+
+These functions describe the actual composition of the Uniswap v3 position at price (p):
+
+* As (p \to p_{\min}):
+  [
+  y(p) \to 0, \quad x(p) \to L\left(\frac{1}{\sqrt{p_{\min}}} - \frac{1}{\sqrt{p_{\max}}}\right),
+  ]
+  the position becomes **all-x**.
+
+* As (p \to p_{\max}):
+  [
+  x(p) \to 0, \quad y(p) \to L\left(\sqrt{p_{\max}} - \sqrt{p_{\min}}\right),
+  ]
+  the position becomes **all-y**.
+
+These are precisely the formulas used in your calculator to compute the token split ((x_{\text{pos}}, y_{\text{pos}})) once liquidity (L) is known.
+
+---
+
+### ✏️ **3. Quick Derivation of the Token Amount Formulas**
+
+Start with the standard definitions of token amounts in terms of liquidity:
+
+[
+x(p) = \frac{L}{\sqrt{p}} - \frac{L}{\sqrt{p_{\max}}},
+\qquad
+y(p) = L\sqrt{p} - L\sqrt{p_{\min}}.
+]
+
+These follow directly from integrating the “infinitesimal liquidity expression” over the active price interval:
+
+[
+dx = \frac{L}{2 p^{3/2}},dp,
+\qquad
+dy = \frac{L}{2\sqrt{p}},dp.
+]
+
+Integrating (dx) from (p) to (p_{\max}) yields (x(p)).
+Integrating (dy) from (p_{\min}) to (p) yields (y(p)).
+
+Multiplying the transformed expressions gives the invariant:
+
+[
+\left(x + \frac{L}{\sqrt{p_{\max}}}\right)
+\left(y + L\sqrt{p_{\min}}\right)
+= L^2.
+]
+
+---
+
+### 🧠 **4. Why Square-Root Price Appears Everywhere**
+
+Uniswap v3 works naturally in **square-root price** space:
+
+[
+\sqrt{p} = \sqrt{\frac{\text{token } y}{\text{token } x}}.
+]
+
+This has two important consequences:
+
+1. **Liquidity becomes linear in (\sqrt{p})**
+   which greatly simplifies the math.
+
+2. **Fee earnings accumulate linearly across ticks**,
+   because ticks are increments in (\sqrt{p}), not in (p).
+
+This is why all Uniswap v3 equations involve terms like:
+
+* (1/\sqrt{p})
+* (\sqrt{p_{\min}})
+* (\sqrt{p_{\max}})
+
+It also explains the elegance of the token formulas above: they are simply linear functions of (\sqrt{p}).
+
+---
+
+### 📌 **Summary**
+
+For any price (p) inside a Uniswap v3 range:
+
+[
+x(p) = L\left(\frac{1}{\sqrt{p}} - \frac{1}{\sqrt{p_{\max}}}\right),
+\qquad
+y(p) = L\left(\sqrt{p} - \sqrt{p_{\min}}\right),
+]
+
+and these satisfy the invariant:
+
+[
+\left( x + \frac{L}{\sqrt{p_{\max}}} \right)
+\left( y + L\sqrt{p_{\min}} \right)
+= L^{2}.
+]
+
+This is all you need for liquidity computation and token-split calculation in your IL tool.
+
+---
+
+If you'd like, I can also prepare:
+
+* The **L-from-x** and **L-from-y** formulas as part of this section
+* A visual illustration (ASCII or SVG) of how tokens convert as price moves
+* An optional section on **ticks** and how prices map to tick indices
+
+Just say the word.
+
 """)
 
 # --- SECTION 2: Placeholder for IL Discussion ---
