@@ -159,12 +159,28 @@ def y_amount(L, p, pmin):
     return L * (math.sqrt(p) - math.sqrt(pmin))
 
 def x_amount_future(L, p_prime, pmin, pmax):
-    p_eff = max(p_prime, pmin)
-    return L * (1/math.sqrt(p_eff) - 1/math.sqrt(pmax))
+    if p_prime <= pmin:
+        # all-x region
+        return L * (1/math.sqrt(pmin) - 1/math.sqrt(pmax))
+    elif p_prime >= pmax:
+        # all-y region
+        return 0.0
+    else:
+        # mixed region
+        return L * (1/math.sqrt(p_prime) - 1/math.sqrt(pmax))
+
 
 def y_amount_future(L, p_prime, pmin, pmax):
-    p_eff = min(p_prime, pmax)
-    return L * (math.sqrt(p_eff) - math.sqrt(pmin))
+    if p_prime <= pmin:
+        # all-x region
+        return 0.0
+    elif p_prime >= pmax:
+        # all-y region
+        return L * (math.sqrt(pmax) - math.sqrt(pmin))
+    else:
+        # mixed region
+        return L * (math.sqrt(p_prime) - math.sqrt(pmin))
+
 
 # ======================================================
 # ------------------ LIQUIDITY BLOCK -------------------
