@@ -132,8 +132,58 @@ and these satisfy the invariant:
 
 # --- SECTION 2: Placeholder for IL Discussion ---
 st.header("Impermanent Loss (Placeholder)")
-st.markdown("""
-IL derivation and discussion will go here.
+st.markdown(r"""
+## 📉 Impermanent Loss From a Price Move
+
+Suppose a Uniswap v3 position is initialized at price \(p\) with liquidity \(L\), active in the range
+\([p_{\min}, p_{\max}]\).  
+If the price later moves to a new level \(p'\), the number of tokens in the position becomes:
+
+\[
+x'(p') = L\left( \frac{1}{\sqrt{\max(p', p_{\min})}} - \frac{1}{\sqrt{p_{\max}}} \right),
+\]
+
+\[
+y'(p') = L\left( \sqrt{\min(p', p_{\max})} - \sqrt{p_{\min}} \right).
+\]
+
+These formulas automatically handle out-of-range situations:
+
+- If \( p' < p_{\min} \): the position becomes **all-x**
+- If \( p' > p_{\max} \): the position becomes **all-y**
+- If \( p_{\min} < p' < p_{\max} \): the position holds a mixture
+
+---
+
+## 💰 Position Value at the New Price
+
+At price \(p'\), the LP position is worth:
+
+\[
+V_{\text{LP}}(p') = x'(p') + \frac{1}{p'}\,y'(p').
+\]
+
+For comparison, a passive HODL of the original token mix at initialization price \(p\) is worth:
+
+\[
+V_{\text{HODL}}(p') = x(p) + \frac{1}{p'}\,y(p),
+\]
+
+where \(x(p)\) and \(y(p)\) are the initial amounts deposited into the position.
+
+---
+
+## 📊 Impermanent Loss
+
+Impermanent Loss is defined as the relative underperformance:
+
+\[
+\text{IL}(p \to p') =
+\frac{V_{\text{HODL}}(p') - V_{\text{LP}}(p')}{V_{\text{HODL}}(p')}.
+\]
+
+This quantity is always \(\le 0\) (LP underperforms HODL), except in fee-generating environments where fee income may offset IL.
+
 """)
 
 # --- SECTION 3: Interactive Calculator ---
