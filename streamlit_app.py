@@ -212,10 +212,11 @@ st.subheader("IL Curve")
 # ------------------- IL CURVE PLOT --------------------
 # ======================================================
 
+
 st.subheader("IL Curve Across the Full Range")
 
 # Create a price range slightly outside the LP bounds
-p_low = max(1e-9, p_min * 0.9)
+p_low = max(1e-12, p_min * 0.9)
 p_high = p_max * 1.1
 
 p_vals = np.linspace(p_low, p_high, 400)
@@ -228,13 +229,13 @@ for pprime in p_vals:
     Vhodl = x_init + y_init / pprime
     IL_vals.append((Vhodl - Vlp) / Vhodl)
 
+# Streamlit expects the x-axis as index
 df_full = pd.DataFrame({"p'": p_vals, "IL": IL_vals})
+df_full = df_full.set_index("p'")
 
-# Display with Streamlit’s native charting
-st.line_chart(df_full, x="p'", y="IL")
+st.line_chart(df_full["IL"])
 
 st.caption(
     "The IL curve spans from slightly below p_min to slightly above p_max. "
     "Flat regions indicate out-of-range behavior where the LP is all-x (left) or all-y (right)."
 )
-
