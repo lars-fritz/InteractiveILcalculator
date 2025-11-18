@@ -208,7 +208,17 @@ st.write(f"### ➖ Impermanent Loss: {IL:.4%}")
 
 st.subheader("IL Curve")
 
-p_vals = np.linspace(0.5 * p_initial, 1.5 * p_initial, 200)
+# ======================================================
+# ------------------- IL CURVE PLOT --------------------
+# ======================================================
+
+st.subheader("IL Curve Across the Full Range")
+
+# Create a price range slightly outside the LP bounds
+p_low = max(1e-9, p_min * 0.9)
+p_high = p_max * 1.1
+
+p_vals = np.linspace(p_low, p_high, 400)
 IL_vals = []
 
 for pprime in p_vals:
@@ -218,5 +228,13 @@ for pprime in p_vals:
     Vhodl = x_init + y_init / pprime
     IL_vals.append((Vhodl - Vlp) / Vhodl)
 
-df = pd.DataFrame({"p'": p_vals, "IL": IL_vals})
-st.line_chart(df, x="p'", y="IL")
+df_full = pd.DataFrame({"p'": p_vals, "IL": IL_vals})
+
+# Display with Streamlit’s native charting
+st.line_chart(df_full, x="p'", y="IL")
+
+st.caption(
+    "The IL curve spans from slightly below p_min to slightly above p_max. "
+    "Flat regions indicate out-of-range behavior where the LP is all-x (left) or all-y (right)."
+)
+
