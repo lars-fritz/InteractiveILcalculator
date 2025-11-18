@@ -1,20 +1,20 @@
 import streamlit as st
 import math
 import numpy as np
-import matplotlib.pyplot as plt
+import pandas as pd
 
 st.title("Uniswap v3 Impermanent Loss Calculator")
 
-# =========================================
-# ----------- UNISWAP V3 MATH -------------
-# =========================================
+# ======================================================
+# ------------------- UNISWAP V3 MATH ------------------
+# ======================================================
 
 st.markdown(r"""
 # 📘 Uniswap v3 Mathematics: Liquidity, Price, and Token Amounts
 
 ### 🔢 **1. The Core Concentrated-Liquidity Invariant**
 
-For a Uniswap v3 position with liquidity \(L\) and active range \([p_{\min}, p_{\max}]\),
+For a position with liquidity \(L\) active on \([p_{\min}, p_{\max}]\),
 the token balances \((x,y)\) at price \(p\) satisfy:
 
 $$
@@ -25,9 +25,7 @@ $$
 
 ---
 
-### 🧮 **2. Token Amounts as Explicit Functions of Price**
-
-The in-range token balances are:
+### 🧮 **2. Token Amounts Inside the Active Range**
 
 $$
 x(p)=L\left(\frac{1}{\sqrt{p}}-\frac{1}{\sqrt{p_{\max}}}\right),
@@ -35,59 +33,32 @@ x(p)=L\left(\frac{1}{\sqrt{p}}-\frac{1}{\sqrt{p_{\max}}}\right),
 y(p)=L\left(\sqrt{p}-\sqrt{p_{\min}}\right).
 $$
 
-As \(p \to p_{\min}\):
-
-$$
-y(p)\to0,\qquad 
-x(p)\to L\left(\frac{1}{\sqrt{p_{\min}}}-\frac{1}{\sqrt{p_{\max}}}\right).
-$$
-
-As \(p \to p_{\max}\):
-
-$$
-x(p)\to0,\qquad 
-y(p)\to L\left(\sqrt{p_{\max}}-\sqrt{p_{\min}}\right).
-$$
+As \(p \to p_{\min}\) the position becomes all–x.  
+As \(p \to p_{\max}\) the position becomes all–y.
 
 ---
 
-### ✏️ **3. Derivation Sketch**
+### ✏️ **3. Why Square-Root Prices?**
 
-Integrating the infinitesimal liquidity relations
-
-$$
-dx = \frac{L}{2 p^{3/2}}\, dp,
-\qquad
-dy = \frac{L}{2\sqrt{p}}\, dp,
-$$
-
-yields the formulas above and the invariant.
-
----
-
-### 🧠 **4. Why Square-Root Price?**
-
-Uniswap v3 is linear in \(\sqrt{p}\):
+Uniswap v3 liquidity is linear in \(\sqrt{p}\):
 
 $$
-\sqrt{p}=\sqrt{\frac{y}{x}}.
+\sqrt{p} = \sqrt{\frac{y}{x}}.
 $$
 
-This simplifies liquidity, ticks, fee accumulation, and explains
-why all v3 formulas involve square-root terms.
+This simplifies liquidity math, tick spacing, and fee accounting.
 
 ---
 """)
 
-# =========================================
-# ----------- IMPERMANENT LOSS -----------
-# =========================================
+# ======================================================
+# ---------------- IMPERMANENT LOSS THEORY -------------
+# ======================================================
 
 st.markdown(r"""
-# 📉 Impermanent Loss From a Price Move
+# 📉 Impermanent Loss
 
-If a position initialized at price \(p\) with liquidity \(L\) later moves to \(p'\), 
-the token balances become:
+After the price moves from \(p\) to \(p'\), token balances become:
 
 $$
 x'(p') = L\left( \frac{1}{\sqrt{\max(p',p_{\min})}} - \frac{1}{\sqrt{p_{\max}}} \right),
@@ -97,43 +68,38 @@ $$
 y'(p') = L\left( \sqrt{\min(p',p_{\max})} - \sqrt{p_{\min}} \right).
 $$
 
-Position value at new price:
+LP value at new price:
 
 $$
-V_{\text{LP}}(p') = x'(p') + \frac{1}{p'}y'(p').
+V_{\text{LP}}(p') = x'(p') + \frac{1}{p'} y'(p').
 $$
 
 HODL value:
 
 $$
-V_{\text{HODL}}(p') = x(p)+\frac{1}{p'}y(p).
+V_{\text{HODL}}(p') = x(p)+\frac{1}{p'} y(p).
 $$
 
 Impermanent Loss:
 
 $$
-\text{IL}(p\to p') =
+\text{IL}(p\rightarrow p') =
 \frac{V_{\text{HODL}}(p')-V_{\text{LP}}(p')}{V_{\text{HODL}}(p')}.
 $$
+
 """)
 
-# =========================================
-# ----------- INTERACTIVE CALC -----------
-# =========================================
+# ======================================================
+# ------------------- RANGE INPUT UI -------------------
+# ======================================================
 
 st.header("Interactive Range-LP Calculator")
 
 st.subheader("1. Position Inputs")
 
-current_price = st.number_input(
-    "Current price p (y per x)",
-    min_value=0.0000001,
-    value=1.0,
-    step=0.01
-)
-
-p_min = st.number_input("Lower price bound p_min", min_value=0.0, value=0.8, step=0.01)
-p_max = st.number_input("Upper price bound p_max", min_value=0.0, value=1.2, step=0.01)
+current_price = st.number_input("Current price p (y per x)", min_value=1e-9, value=1.0)
+p_min = st.number_input("Lower price bound p_min", min_value=0.0, value=0.8)
+p_max = st.number_input("Upper price bound p_max", min_value=0.0, value=1.2)
 
 funding_mode = st.radio(
     "How do you fund the position?",
@@ -147,14 +113,13 @@ else:
     y0 = st.number_input("Amount of token y", min_value=0.0, value=1000.0)
     x0 = None
 
-
-# ========= Utility functions =========
+# ======================================================
+# ---------------- UTILITY FUNCTIONS -------------------
+# ======================================================
 
 def compute_L_from_x(x, p, pmin, pmax):
     denom = 2 * math.sqrt(p) - math.sqrt(pmin) - p / math.sqrt(pmax)
-    if denom <= 0:
-        return float("nan")
-    return p * x / denom
+    return float("nan") if denom <= 0 else p * x / denom
 
 def compute_L_from_y(y, p, pmin):
     return y / (math.sqrt(p) - math.sqrt(pmin))
@@ -169,22 +134,25 @@ def x_amount_future(L, p_prime, pmin, pmax):
     p_eff = max(p_prime, pmin)
     return L * (1/math.sqrt(p_eff) - 1/math.sqrt(pmax))
 
-def y_amount_future(L, p_prime, pmin):
+def y_amount_future(L, p_prime, pmin, pmax):
     p_eff = min(p_prime, pmax)
     return L * (math.sqrt(p_eff) - math.sqrt(pmin))
 
-
-# ========= Compute Liquidity =========
+# ======================================================
+# ---------------- LIQUIDITY CALCULATOR ----------------
+# ======================================================
 
 st.subheader("2. Liquidity and Token Split")
 
 if st.button("Compute Liquidity and Token Split"):
 
+    # Compute L
     if funding_mode == "I only have asset x":
         L = compute_L_from_x(x0, current_price, p_min, p_max)
     else:
         L = compute_L_from_y(y0, current_price, p_min)
 
+    # Store for IL section
     st.session_state["L"] = L
     st.session_state["p_min"] = p_min
     st.session_state["p_max"] = p_max
@@ -192,23 +160,22 @@ if st.button("Compute Liquidity and Token Split"):
 
     st.success(f"Liquidity L = {L:.6f}")
 
+    # Token composition
     x_pos = x_amount(L, current_price, p_max)
     y_pos = y_amount(L, current_price, p_min)
 
     st.write(f"**x in position:** {x_pos:.6f}")
     st.write(f"**y in position:** {y_pos:.6f}")
+    st.caption("Actual tokens inside the active Uniswap v3 range.")
 
-    st.caption("These are the tokens inside the active Uniswap v3 range.")
-
-
-# =====================================
-# ----------- IL CALCULATOR -----------
-# =====================================
+# ======================================================
+# ------------------ IL CALCULATOR ---------------------
+# ======================================================
 
 st.header("Impermanent Loss Calculator")
 
 if "L" not in st.session_state:
-    st.warning("Please compute liquidity above first.")
+    st.warning("Please compute liquidity first.")
     st.stop()
 
 L = st.session_state["L"]
@@ -216,41 +183,40 @@ p_min = st.session_state["p_min"]
 p_max = st.session_state["p_max"]
 p_initial = st.session_state["p_initial"]
 
-p_new = st.number_input("New price p'", value=0.7, step=0.01)
+p_new = st.number_input("New price p'", min_value=1e-9, value=0.7)
 
-# Initial and new composition
+# Initial split
 x_init = x_amount(L, p_initial, p_max)
 y_init = y_amount(L, p_initial, p_min)
 
+# New split
 x_new = x_amount_future(L, p_new, p_min, p_max)
-y_new = y_amount_future(L, p_new, p_min)
+y_new = y_amount_future(L, p_new, p_min, p_max)
 
-V_lp = x_new + y_new/p_new
-V_hodl = x_init + y_init/p_new
-
-IL_val = (V_hodl - V_lp) / V_hodl
+# Values
+V_lp = x_new + y_new / p_new
+V_hodl = x_init + y_init / p_new
+IL = (V_hodl - V_lp) / V_hodl
 
 st.write(f"**LP value at p' = {p_new}:** {V_lp:.6f}")
-st.write(f"**HODL value at p' = {p_new}:** {V_hodl:.6f}")
-st.write(f"### ➖ Impermanent Loss: {IL_val:.4%}")
+st.write(f"**HODL value at p' = {V_hodl:.6f}**")
+st.write(f"### ➖ Impermanent Loss: {IL:.4%}")
 
-# ----- IL curve -----
+# ======================================================
+# ------------------- IL CURVE PLOT --------------------
+# ======================================================
 
-p_vals = np.linspace(0.5*p_initial, 1.5*p_initial, 200)
+st.subheader("IL Curve")
+
+p_vals = np.linspace(0.5 * p_initial, 1.5 * p_initial, 200)
 IL_vals = []
 
 for pprime in p_vals:
     xp = x_amount_future(L, pprime, p_min, p_max)
-    yp = y_amount_future(L, pprime, p_min)
-    Vlp = xp + yp/pprime
-    Vhodl = x_init + y_init/pprime
+    yp = y_amount_future(L, pprime, p_min, p_max)
+    Vlp = xp + yp / pprime
+    Vhodl = x_init + y_init / pprime
     IL_vals.append((Vhodl - Vlp) / Vhodl)
 
-fig, ax = plt.subplots()
-ax.plot(p_vals, IL_vals)
-ax.axvline(p_initial, color='gray', linestyle='--', linewidth=1)
-ax.set_title("Impermanent Loss Curve")
-ax.set_xlabel("Price p'")
-ax.set_ylabel("IL")
-st.pyplot(fig)
-
+df = pd.DataFrame({"p'": p_vals, "IL": IL_vals})
+st.line_chart(df, x="p'", y="IL")
