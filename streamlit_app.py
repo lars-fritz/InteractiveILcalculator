@@ -6,19 +6,6 @@ st.title("Uniswap v3 Impermanent Loss Calculator")
 # --- SECTION 1: Placeholder for Uniswap v3 Math ---
 st.header("Uniswap v3 Math (Placeholder)")
 st.markdown("""
-Below is a **fully polished, drop-in Streamlit Markdown block** containing:
-
-* ✔ The invariant
-* ✔ Token formulas
-* ✔ A clean intuitive explanation
-* ✔ A short derivation of the formulas
-* ✔ A short explanation of why Uniswap v3 uses **square-root price**
-
-All formulas are written in **pure Markdown + LaTeX**, which Streamlit renders natively with `st.markdown(..., unsafe_allow_html=True)`.
-
-You can paste this entire block directly into your app.
-
----
 
 # 📘 Uniswap v3 Mathematics: Liquidity, Price, and Token Amounts
 
@@ -140,17 +127,6 @@ and these satisfy the invariant:
 = L^{2}.
 ]
 
-This is all you need for liquidity computation and token-split calculation in your IL tool.
-
----
-
-If you'd like, I can also prepare:
-
-* The **L-from-x** and **L-from-y** formulas as part of this section
-* A visual illustration (ASCII or SVG) of how tokens convert as price moves
-* An optional section on **ticks** and how prices map to tick indices
-
-Just say the word.
 
 """)
 
