@@ -242,14 +242,7 @@ st.session_state['p_initial'] = current_price
 # --- Computation ---
 st.subheader("2. Liquidity and Position Composition")
 
-if 'L' not in st.session_state:
-    st.warning("Please compute liquidity above before calculating IL.")
-    st.stop()
 
-L = st.session_state['L']
-p_min = st.session_state['p_min']
-p_max = st.session_state['p_max']
-p_initial = st.session_state['p_initial']
 
 if st.button("Compute Liquidity and Token Split"):
 
@@ -272,7 +265,14 @@ if st.button("Compute Liquidity and Token Split"):
     st.markdown("---")
     st.caption("These are the actual tokens currently deposited inside the active Uniswap v3 position.")
 st.subheader("Interactive IL Calculator")
+if 'L' not in st.session_state:
+    st.warning("Please compute liquidity above before calculating IL.")
+    st.stop()
 
+L = st.session_state['L']
+p_min = st.session_state['p_min']
+p_max = st.session_state['p_max']
+p_initial = st.session_state['p_initial']
 p_initial = st.number_input("Initial price p", value=1.0, step=0.01)
 p_new = st.number_input("New price p'", value=0.7, step=0.01)
 
