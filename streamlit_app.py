@@ -258,7 +258,7 @@ if st.button("Compute Liquidity and Token Split"):
 
     st.markdown("---")
     st.caption("These are the actual tokens currently deposited inside the active Uniswap v3 position.")
-  st.subheader("Interactive IL Calculator")
+st.subheader("Interactive IL Calculator")
 
 p_initial = st.number_input("Initial price p", value=1.0, step=0.01)
 p_new = st.number_input("New price p'", value=0.7, step=0.01)
