@@ -150,11 +150,13 @@ if st.button("Compute Liquidity and Token Split"):
 
     # Compute L
     if funding_mode == "I only have asset x":
-        L = compute_L_from_x(x0, current_price, p_min, p_max)
+        x_fund = x0                # already in x-units
     else:
-        L = compute_L_from_y(y0, current_price, p_min)
+        x_fund = y0 / current_price   # convert y → x at spot price
 
-    # Store for IL section
+    L = compute_L_from_x(x_fund, current_price, p_min, p_max)
+
+    # store
     st.session_state["L"] = L
     st.session_state["p_min"] = p_min
     st.session_state["p_max"] = p_max
@@ -162,7 +164,7 @@ if st.button("Compute Liquidity and Token Split"):
 
     st.success(f"Liquidity L = {L:.6f}")
 
-    # Token composition
+    # LP token composition at current price
     x_pos = x_amount(L, current_price, p_max)
     y_pos = y_amount(L, current_price, p_min)
 
